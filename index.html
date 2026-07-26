@@ -1130,7 +1130,7 @@
                 });
                 
                 // ยิงคำสั่งไปที่โปรแกรม Local Server ที่เราจะสร้างมารับค่า
-                const response = await fetch('http://192.168.1.59:8080/print', {
+                const response = await fetch('/print', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
