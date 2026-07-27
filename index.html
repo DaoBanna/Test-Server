@@ -979,12 +979,10 @@
         
         createInputHTML: function(type, rowId) {
             const ph = type === 'cat' ? 'หมวดหมู่' : 'พิมพ์เพื่อค้นหา...';
-            // ปลดล็อก readonly ให้พิมพ์ได้อิสระ + เพิ่ม oninput ให้ค้นหาแบบ Real-time
             return `<input type="text" name="${type}" class="modal-input w-full border border-slate-300 rounded-lg md:rounded outline-none bg-slate-50 md:bg-white transition focus:ring-2 focus:ring-indigo-500" placeholder="${ph}" onclick="app.showDropdown(this, '${type}')" oninput="app.filterDropdown(this, '${type}')" onchange="app.handleInputChange(this, '${type}')" autocomplete="off">`;
         },
         
         showDropdown: function(input, type) {
-            // โยนให้ฟังก์ชันกรองทำงานเลย
             this.filterDropdown(input, type);
         },
         
@@ -1018,7 +1016,6 @@
                 }
             }
             
-            // กรองข้อมูลตามคำค้นหาที่พิมพ์
             if (keyword) {
                 items = items.filter(item => item.toLowerCase().includes(keyword));
             }
@@ -1042,7 +1039,6 @@
         },
         
         handleInputChange: function(input, type) {
-            // เมื่อพิมพ์ชื่อเต็มๆ เสร็จ (แล้วกด Tab หรือคลิกที่อื่น) จะดึงข้อมูลเดิมมาเติมให้อัตโนมัติ
             if (type === 'prod') {
                 const val = input.value.trim();
                 if (val) {
@@ -1071,10 +1067,6 @@
                     this.updateInfoDashboard(null);
                 }
             }
-        }, 
-                }
-                this.activeInput = null;
-            });
         },
         
         selectItem: function(val, type) {
@@ -1231,9 +1223,6 @@
             });
         },
 
-        // ============================================
-        // ฟังก์ชันส่งบิลเก่าย้อนหลังเข้าคิวคลาวด์ [NEW]
-        // ============================================
         sendToCloudPrint: function(data) {
             Swal.fire({ 
                 title: 'กำลังส่งเข้าคิวพริ้นต์...', 
