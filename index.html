@@ -978,77 +978,100 @@
         },
         
         createInputHTML: function(type, rowId) {
-            const ph = type === 'cat' ? 'หมวดหมู่' : 'เลือกสินค้า';
-            return `<input type="text" name="${type}" class="modal-input w-full border border-slate-300 rounded-lg md:rounded outline-none bg-slate-50 md:bg-white transition focus:ring-2 focus:ring-indigo-500 cursor-pointer caret-transparent" placeholder="${ph}" readonly onclick="app.showDropdown(this, '${type}')" autocomplete="off">`;
+            const ph = type === 'cat' ? 'หมวดหมู่' : 'พิมพ์เพื่อค้นหา...';
+            // ปลดล็อก readonly ให้พิมพ์ได้อิสระ + เพิ่ม oninput ให้ค้นหาแบบ Real-time
+            return `<input type="text" name="${type}" class="modal-input w-full border border-slate-300 rounded-lg md:rounded outline-none bg-slate-50 md:bg-white transition focus:ring-2 focus:ring-indigo-500" placeholder="${ph}" onclick="app.showDropdown(this, '${type}')" oninput="app.filterDropdown(this, '${type}')" onchange="app.handleInputChange(this, '${type}')" autocomplete="off">`;
         },
         
         showDropdown: function(input, type) {
-            this.activeInput = input; 
-            const dropdown = document.getElementById('global-dropdown'); 
+            // โยนให้ฟังก์ชันกรองทำงานเลย
+            this.filterDropdown(input, type);
+        },
+        
+        filterDropdown: function(input, type) {
+            this.activeInput = input;
+            const dropdown = document.getElementById('global-dropdown');
             const rect = input.getBoundingClientRect();
             
-            dropdown.style.top = (rect.bottom + 5) + 'px'; 
-            dropdown.style.left = rect.left + 'px'; 
+            dropdown.style.top = (rect.bottom + 5) + 'px';
+            dropdown.style.left = rect.left + 'px';
             dropdown.style.width = rect.width + 'px';
             
+            const keyword = input.value.trim().toLowerCase();
             let items = [];
-            if (type === 'cat') { 
-                items = this.categories; 
+            
+            if (type === 'cat') {
+                items = this.categories;
             } else {
-                const row = input.closest('.multi-row'); 
+                const row = input.closest('.multi-row');
                 const catVal = row.querySelector('[name="cat"]').value.trim();
                 if (catVal) {
-                    const catData = this.data.filter(t => t.category === catVal); 
-                    const pCountsLocal = {}; 
-                    catData.forEach(t => { 
-                        pCountsLocal[t.product] = (pCountsLocal[t.product] || 0) + 1; 
+                    const catData = this.data.filter(t => t.category === catVal);
+                    const pCountsLocal = {};
+                    catData.forEach(t => {
+                        pCountsLocal[t.product] = (pCountsLocal[t.product] || 0) + 1;
                     });
-                    const productsInCat = [...new Set(catData.map(t => t.product))].sort((a,b) => pCountsLocal[b] - pCountsLocal[a]); 
+                    const productsInCat = [...new Set(catData.map(t => t.product))].sort((a,b) => pCountsLocal[b] - pCountsLocal[a]);
                     items = productsInCat.length > 0 ? productsInCat : this.products;
-                } else { 
-                    items = this.products; 
+                } else {
+                    items = this.products;
                 }
             }
             
-            this.renderDropdownItems(items, type); 
+            // กรองข้อมูลตามคำค้นหาที่พิมพ์
+            if (keyword) {
+                items = items.filter(item => item.toLowerCase().includes(keyword));
+            }
+            
+            this.renderDropdownItems(items, type);
             dropdown.style.display = 'block';
         },
         
         renderDropdownItems: function(items, type) {
-            const dropdown = document.getElementById('global-dropdown'); 
+            const dropdown = document.getElementById('global-dropdown');
             const title = type === 'cat' ? 'หมวดหมู่' : 'สินค้า';
             
-            let html = `<div class="p-3 border-b border-slate-200 bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 cursor-pointer transition flex items-center gap-2 text-sm" onclick="app.promptAddNew('${type}')"><i class="fa-solid fa-plus-circle"></i> เพิ่ม${title}ใหม่...</div>`;
+            let html = `<div class="p-2 border-b border-slate-200 bg-slate-100 text-slate-500 text-xs text-center">พิมพ์ชื่อใหม่ หรือ เลือกจากรายการ</div>`;
             
-            if (items.length === 0) { 
-                html += `<div class="p-3 text-slate-400 text-sm text-center">ไม่มีข้อมูลเดิมในระบบ</div>`; 
-            } else { 
-                html += items.map(item => `<div class="dropdown-item text-sm py-3 md:py-2" onclick="app.selectItem('${item.replace(/'/g, "\\'")}', '${type}')">${item}</div>`).join(''); 
+            if (items.length === 0) {
+                html += `<div class="p-3 text-indigo-600 font-bold text-sm text-center bg-indigo-50"><i class="fa-solid fa-check-circle"></i> ใช้ชื่อใหม่ที่พิมพ์ได้เลย</div>`;
+            } else {
+                html += items.map(item => `<div class="dropdown-item text-sm py-3 md:py-2" onclick="app.selectItem('${item.replace(/'/g, "\\'")}', '${type}')">${item}</div>`).join('');
             }
             dropdown.innerHTML = html;
         },
         
-        promptAddNew: function(type) {
-            const currentInput = this.activeInput; 
-            document.getElementById('global-dropdown').style.display = 'none'; 
-            const title = type === 'cat' ? 'หมวดหมู่' : 'สินค้า';
-            
-            Swal.fire({ 
-                title: `เพิ่ม${title}ใหม่`, 
-                input: 'text', 
-                inputPlaceholder: `พิมพ์ชื่อ${title}ที่นี่...`, 
-                showCancelButton: true, 
-                confirmButtonText: 'ตกลง', 
-                cancelButtonText: 'ยกเลิก', 
-                confirmButtonColor: '#4f46e5',
-            }).then((result) => {
-                if (result.isConfirmed && result.value && currentInput) { 
-                    currentInput.value = result.value.trim(); 
-                    if(type === 'prod') { 
-                        const row = currentInput.closest('.multi-row'); 
-                        row.querySelector('[name="price"]').value = ''; 
-                        this.updateInfoDashboard(null); 
-                    } 
+        handleInputChange: function(input, type) {
+            // เมื่อพิมพ์ชื่อเต็มๆ เสร็จ (แล้วกด Tab หรือคลิกที่อื่น) จะดึงข้อมูลเดิมมาเติมให้อัตโนมัติ
+            if (type === 'prod') {
+                const val = input.value.trim();
+                if (val) {
+                    this.updateInfoDashboard(val);
+                    const row = input.closest('.multi-row');
+                    const history = this.data.find(t => t.product === val);
+                    
+                    if (history) {
+                        const catInput = row.querySelector('[name="cat"]');
+                        if (catInput && !catInput.value) catInput.value = history.category || '';
+                        
+                        const unitInput = row.querySelector('[name="unit"]');
+                        if (unitInput && !unitInput.value) unitInput.value = history.unit || 'ชิ้น';
+                        
+                        const currentType = document.getElementById('multi-type').value;
+                        const priceInput = row.querySelector('[name="price"]');
+                        if (priceInput && !priceInput.value) {
+                            const lastRecord = this.data.filter(t => t.product === val && t.type === currentType).sort((a,b) => b.date - a.date)[0];
+                            if (lastRecord) {
+                                priceInput.value = lastRecord.price;
+                                this.calcMultiTotal();
+                            }
+                        }
+                    }
+                } else {
+                    this.updateInfoDashboard(null);
+                }
+            }
+        }, 
                 }
                 this.activeInput = null;
             });
