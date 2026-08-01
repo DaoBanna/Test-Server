@@ -327,6 +327,101 @@
                         <div id="pagination" class="p-3 md:p-4 flex justify-between items-center bg-slate-50 border-t border-slate-200 text-[10px] md:text-sm text-slate-500"></div>
                     </div>
                 </div>
+                <div id="view-transactions" class="view-section hidden space-y-4 md:space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-bold text-slate-800">รายการซื้อ-ขาย</h2>
+                        </div>
+                        <div class="flex bg-white p-1 rounded-lg md:rounded-xl border border-slate-200 shadow-sm text-xs md:text-sm">
+                            <button onclick="app.filterType('all')" id="tab-all" class="px-3 md:px-5 py-1.5 md:py-2 rounded-md font-medium transition bg-slate-800 text-white shadow">ทั้งหมด</button>
+                            <button onclick="app.filterType('ซื้อ')" id="tab-buy" class="px-3 md:px-5 py-1.5 md:py-2 rounded-md font-medium transition text-slate-500 hover:bg-slate-50">ซื้อ</button>
+                            <button onclick="app.filterType('ขาย')" id="tab-sell" class="px-3 md:px-5 py-1.5 md:py-2 rounded-md font-medium transition text-slate-500 hover:bg-slate-50">ขาย</button>
+                        </div>
+                    </div>
+                    <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-2 md:gap-3 items-end">
+                        <div class="flex flex-col lg:col-span-1">
+                            <label class="text-[9px] md:text-[10px] text-indigo-600 font-bold mb-1">เฉพาะวันเดียว</label>
+                            <input type="date" id="filter-single-date" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-indigo-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
+                        </div>
+                        <div class="flex flex-col lg:col-span-1">
+                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">ตั้งแต่วันที่</label>
+                            <input type="date" id="filter-date-start" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
+                        </div>
+                        <div class="flex flex-col lg:col-span-1">
+                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">ถึงวันที่</label>
+                            <input type="date" id="filter-date-end" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">ปี</label>
+                            <select id="filter-year" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full"></select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">เดือน</label>
+                            <select id="filter-month" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
+                                <option value="all">ทุกเดือน</option>
+                                <option value="0">ม.ค.</option>
+                                <option value="1">ก.พ.</option>
+                                <option value="2">มี.ค.</option>
+                                <option value="3">เม.ย.</option>
+                                <option value="4">พ.ค.</option>
+                                <option value="5">มิ.ย.</option>
+                                <option value="6">ก.ค.</option>
+                                <option value="7">ส.ค.</option>
+                                <option value="8">ก.ย.</option>
+                                <option value="9">ต.ค.</option>
+                                <option value="10">พ.ย.</option>
+                                <option value="11">ธ.ค.</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">วันที่</label>
+                            <select id="filter-day" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full"></select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">สัปดาห์</label>
+                            <select id="filter-week" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
+                                <option value="all">ทุกสัปดาห์</option>
+                                <option value="1">WK 1</option>
+                                <option value="2">WK 2</option>
+                                <option value="3">WK 3</option>
+                                <option value="4">WK 4</option>
+                                <option value="5">WK 5</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">แสดงผล</label>
+                            <select id="rows-per-page" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
+                                <option value="15">15 แถว</option>
+                                <option value="30">30 แถว</option>
+                                <option value="50">50 แถว</option>
+                                <option value="100">100 แถว</option>
+                            </select>
+                        </div>
+                        <div class="col-span-2 lg:col-span-3 relative">
+                            <input type="text" id="search-input" placeholder="ค้นหาชื่อ, หมวดหมู่..." class="w-full pl-9 pr-3 py-1.5 md:pl-10 md:pr-4 md:py-2 rounded-md border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs md:text-sm">
+                            <i class="fa-solid fa-search absolute left-3 top-2.5 md:top-3 text-slate-400 text-xs md:text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="overflow-x-auto mobile-scroll-hint">
+                            <table class="w-full text-left border-collapse min-w-[700px]">
+                                <thead class="bg-slate-50 text-slate-600 uppercase text-[10px] md:text-xs tracking-wider">
+                                    <tr>
+                                        <th class="p-3 md:p-4 font-bold cursor-pointer hover:text-indigo-600" onclick="app.sortData('date')">วันที่ <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="p-3 md:p-4 font-bold cursor-pointer hover:text-indigo-600" onclick="app.sortData('type')">ประเภท <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="p-3 md:p-4 font-bold cursor-pointer hover:text-indigo-600" onclick="app.sortData('product')">สินค้า <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="p-3 md:p-4 font-bold text-right cursor-pointer hover:text-indigo-600" onclick="app.sortData('price')">ราคา <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="p-3 md:p-4 font-bold text-right cursor-pointer hover:text-indigo-600" onclick="app.sortData('quantity')">จำนวน <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="p-3 md:p-4 font-bold text-right cursor-pointer hover:text-indigo-600" onclick="app.sortData('total')">รวม <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="p-3 md:p-4 font-bold text-center">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-transactions" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                        <div id="pagination" class="p-3 md:p-4 flex justify-between items-center bg-slate-50 border-t border-slate-200 text-[10px] md:text-sm text-slate-500"></div>
+                    </div>
+                </div>
                 <div id="view-stock" class="view-section hidden space-y-4 md:space-y-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                         <div>
@@ -460,13 +555,12 @@
     
     async function callAPI(action, data = null) {
         try {
-            // [NEW] ดักจับเน็ตหลุด
             if (!navigator.onLine) {
                 throw new Error("❌ ขาดการเชื่อมต่ออินเทอร์เน็ต! กรุณาเช็คสัญญาณเน็ตก่อนบันทึกข้อมูลครับ");
             }
 
-            const payloadStr = data ? encodeURIComponent(JSON.stringify(data)) : '';
-            const fetchUrl = `${SCRIPT_URL}?action=${action}&payload=${payloadStr}`;
+            const fetchUrl = `${SCRIPT_URL}?action=${action}`;
+            
             const response = await fetch(fetchUrl, {
                 method: 'POST', 
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -479,7 +573,7 @@
             
             const textData = await response.text();
             if (textData.trim().startsWith('<')) {
-                throw new Error("ติดหน้าเว็บของ Google! กรุณาเปิดหน้าเว็บนี้ใน 'โหมดไม่ระบุตัวตน (Incognito)'");
+                throw new Error("ติดหน้าเว็บของ Google! กรุณาเช็คการตั้งค่าสิทธิ์ (Anyone) ในหน้า Deploy ครับ");
             }
             
             let result;
@@ -576,35 +670,52 @@
             document.getElementById('mobile-menu').classList.toggle('hidden'); 
         },
         
+        // [NEW] โหลดข้อมูลปัจจุบันก่อนแบบไวๆ แล้วแอบดึง Archive มาสมทบทีหลังแบบไม่บล็อกหน้าจอ
         fetchData: function() {
             callAPI('getInitialData').then(res => {
                 this.data = res.transactions;
-                const pCounts = {}; 
-                const cCounts = {};
-                
-                this.data.forEach(t => { 
-                    if (t.product) pCounts[t.product] = (pCounts[t.product] || 0) + 1; 
-                    if (t.category) cCounts[t.category] = (cCounts[t.category] || 0) + 1; 
+                this.processDataLoaded();
+
+                // แอบดึง Archive เบื้องหลังเงียบๆ เพื่อให้ดูประวัติย้อนหลังได้ครบถ้วน
+                callAPI('getArchiveData').then(archiveRes => {
+                    if (archiveRes.archiveTransactions && archiveRes.archiveTransactions.length > 0) {
+                        this.data = archiveRes.archiveTransactions.concat(this.data);
+                        this.processDataLoaded();
+                        console.log("📂 โหลดข้อมูลเก่าจาก Archive สำเร็จ!");
+                    }
+                }).catch(err => {
+                    console.log("Archive load background info:", err);
                 });
-                
-                this.categories = [...new Set(this.data.map(t => t.category))].filter(String).sort((a, b) => cCounts[b] - cCounts[a]);
-                this.products = [...new Set(this.data.map(t => t.product))].filter(String).sort((a, b) => pCounts[b] - pCounts[a]);
-                
-                this.populateYearFilters(); 
-                this.populateDayFilters();
-                
-                const today = new Date(); 
-                const yEl = document.getElementById('dash-year'); 
-                const mEl = document.getElementById('dash-month');
-                if(yEl) yEl.value = today.getFullYear(); 
-                if(mEl) mEl.value = today.getMonth();
-                
-                this.renderDashboard(); 
-                this.applyFilters(); 
-                this.renderStock();
+
             }).catch(e => { 
                 Swal.fire('เกิดข้อผิดพลาดในการโหลดข้อมูล', e.message, 'error'); 
             });
+        },
+
+        processDataLoaded: function() {
+            const pCounts = {}; 
+            const cCounts = {};
+            
+            this.data.forEach(t => { 
+                if (t.product) pCounts[t.product] = (pCounts[t.product] || 0) + 1; 
+                if (t.category) cCounts[t.category] = (cCounts[t.category] || 0) + 1; 
+            });
+            
+            this.categories = [...new Set(this.data.map(t => t.category))].filter(String).sort((a, b) => cCounts[b] - cCounts[a]);
+            this.products = [...new Set(this.data.map(t => t.product))].filter(String).sort((a, b) => pCounts[b] - pCounts[a]);
+            
+            this.populateYearFilters(); 
+            this.populateDayFilters();
+            
+            const today = new Date(); 
+            const yEl = document.getElementById('dash-year'); 
+            const mEl = document.getElementById('dash-month');
+            if(yEl && yEl.value === '') yEl.value = today.getFullYear(); 
+            if(mEl && mEl.value === 'all') mEl.value = today.getMonth();
+            
+            this.renderDashboard(); 
+            this.applyFilters(); 
+            this.renderStock();
         },
         
         populateYearFilters: function() {
@@ -1503,7 +1614,7 @@
                 unit: document.getElementById('edit-unit').value 
             };
             
-            Swal.showLoading();
+            swal.showLoading();
             
             callAPI('updateSingleTransaction', form).then(res => {
                 if(res.success) { 
@@ -1618,7 +1729,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         app.init();
         
-        // ====== PWA: ติดตั้ง Service Worker ======
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
