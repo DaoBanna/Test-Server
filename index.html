@@ -457,7 +457,6 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGOluFtDE2_sQYGeO014IUfogOWv4_Pw5VZVqTGWIYv8eF2EmBbGK5XwiDAZfp2fvoUw/exec'; 
     
-    // [อัปเดตใหม่] วางระบบ Auto-Retry และสลับไปใช้ GET สำหรับโหลดข้อมูล
     async function callAPI(action, data = null, retries = 3) {
         try {
             if (!navigator.onLine) {
@@ -468,14 +467,12 @@
             let options = {};
 
             if (data !== null) {
-                // ใช้ POST เฉพาะตอนส่งข้อมูลบันทึก (เพราะข้อมูลยาว)
                 options = {
                     method: 'POST', 
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: action, data: data }) 
                 };
             } else {
-                // ใช้ GET ธรรมดาตอนโหลดข้อมูล (เสถียรกว่ากับเซิร์ฟเวอร์ Google)
                 options = { method: 'GET' };
             }
             
@@ -503,10 +500,9 @@
             
             return result;
         } catch (err) { 
-            // ระบบ Auto-Retry: ถ้าโหลดพัง ให้แอบโหลดใหม่เงียบๆ 3 รอบก่อนยอมแพ้
             if (retries > 0) {
                 console.warn(`⚠️ โหลดไม่สำเร็จ กำลังลองใหม่แบบเงียบๆ... (เหลือโอกาสอีก ${retries} ครั้ง)`);
-                await new Promise(resolve => setTimeout(resolve, 1500)); // รอ 1.5 วินาทีแล้วลุยใหม่
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 return callAPI(action, data, retries - 1);
             }
             throw err; 
@@ -610,7 +606,6 @@
                 this.data = this.parseRawData(res.rawTransactions);
                 this.processDataLoaded();
 
-                // แอบดึง Archive เบื้องหลังเงียบๆ 
                 callAPI('getArchiveData').then(archiveRes => {
                     if (archiveRes.rawArchive && archiveRes.rawArchive.length > 0) {
                         const archData = this.parseRawData(archiveRes.rawArchive);
