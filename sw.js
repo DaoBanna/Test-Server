@@ -1,6 +1,6 @@
-const CACHE_NAME = 'stockpro-v3'; // อัปเดตเวอร์ชันเป็น v3 เพื่อบังคับล้างของเก่า
+const CACHE_NAME = 'stockpro-v4';
 
-// บังคับให้ติดตั้งและใช้งานตัวใหม่ทันที ไม่ต้องรอ
+// บังคับให้ติดตั้งและใช้งานตัวใหม่ทันที
 self.addEventListener('install', event => {
   self.skipWaiting(); 
 });
@@ -11,7 +11,6 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys => Promise.all(
       keys.map(key => {
         if (key !== CACHE_NAME) {
-          console.log('ล้าง Cache เก่า: ', key);
           return caches.delete(key);
         }
       })
@@ -20,25 +19,27 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // ข้ามการ Cache ข้อมูล API จาก Google
+  // 1. เมินไฟล์ API จาก Google และ CDN ต่างๆ ให้ปล่อยผ่านไปเลย ไม่ต้องเซฟ
   if (event.request.url.includes('script.google.com') || 
-      event.request.url.includes('script.googleusercontent.com')) {
+      event.request.url.includes('script.googleusercontent.com') ||
+      event.request.url.includes('cdn.')) {
+    return; 
+  }
+
+  // 2. [แก้บั๊กสำคัญ] อนุญาตให้เซฟลงเครื่องเฉพาะไฟล์ที่เป็น HTTP/HTTPS และเป็นการดึงข้อมูล (GET) เท่านั้น
+  // ป้องกันบั๊ก 'chrome-extension' is unsupported
+  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
     return;
   }
 
-  // ใช้สูตร Network First: พยายามดึงไฟล์อัปเดตจากเน็ตก่อนเสมอ 
-  // แต่ถ้าเน็ตหลุด ค่อยเอาไฟล์จากในเครื่อง (Cache) มาแสดง
+  // 3. กฎ Network First: พยายามดึงไฟล์จากเน็ตก่อน ถ้าเน็ตล่มค่อยควักของเก่ามาโชว์
   event.respondWith(
     fetch(event.request).then(response => {
-      // ดึงสำเร็จ -> เอาไปเซฟเก็บไว้เผื่อเน็ตหลุดรอบหน้า
       return caches.open(CACHE_NAME).then(cache => {
-        if (event.request.method === 'GET' && !event.request.url.includes('cdn')) {
-          cache.put(event.request, response.clone());
-        }
+        cache.put(event.request, response.clone());
         return response;
       });
     }).catch(() => {
-      // ถ้าไม่มีเน็ตจริงๆ ค่อยควักของเก่าในแคชมาโชว์
       return caches.match(event.request);
     })
   );
