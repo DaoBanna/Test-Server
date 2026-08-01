@@ -175,7 +175,7 @@
                         </div>
                         <div class="bg-rose-500 p-5 rounded-2xl shadow-lg hover-card text-white relative overflow-hidden">
                             <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2">
-                                <i class="fa-solid fa-chart-shopping text-9xl"></i>
+                                <i class="fa-solid fa-cart-shopping text-9xl"></i>
                             </div>
                             <p class="text-rose-100 text-xs font-medium mb-1">ต้นทุนรวม</p>
                             <h3 class="text-2xl md:text-3xl font-bold" id="kpi-cost">0 ฿</h3>
@@ -457,19 +457,29 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGOluFtDE2_sQYGeO014IUfogOWv4_Pw5VZVqTGWIYv8eF2EmBbGK5XwiDAZfp2fvoUw/exec'; 
     
-    async function callAPI(action, data = null) {
+    // [อัปเดตใหม่] วางระบบ Auto-Retry และสลับไปใช้ GET สำหรับโหลดข้อมูล
+    async function callAPI(action, data = null, retries = 3) {
         try {
             if (!navigator.onLine) {
                 throw new Error("❌ ขาดการเชื่อมต่ออินเทอร์เน็ต! กรุณาเช็คสัญญาณเน็ตก่อนบันทึกข้อมูลครับ");
             }
 
-            const fetchUrl = `${SCRIPT_URL}?action=${action}`;
+            let fetchUrl = `${SCRIPT_URL}?action=${action}`;
+            let options = {};
+
+            if (data !== null) {
+                // ใช้ POST เฉพาะตอนส่งข้อมูลบันทึก (เพราะข้อมูลยาว)
+                options = {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: action, data: data }) 
+                };
+            } else {
+                // ใช้ GET ธรรมดาตอนโหลดข้อมูล (เสถียรกว่ากับเซิร์ฟเวอร์ Google)
+                options = { method: 'GET' };
+            }
             
-            const response = await fetch(fetchUrl, {
-                method: 'POST', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: action, data: data }) 
-            });
+            const response = await fetch(fetchUrl, options);
             
             if (!response.ok) {
                 throw new Error(`การเชื่อมต่อขัดข้อง (HTTP ${response.status})`);
@@ -493,6 +503,12 @@
             
             return result;
         } catch (err) { 
+            // ระบบ Auto-Retry: ถ้าโหลดพัง ให้แอบโหลดใหม่เงียบๆ 3 รอบก่อนยอมแพ้
+            if (retries > 0) {
+                console.warn(`⚠️ โหลดไม่สำเร็จ กำลังลองใหม่แบบเงียบๆ... (เหลือโอกาสอีก ${retries} ครั้ง)`);
+                await new Promise(resolve => setTimeout(resolve, 1500)); // รอ 1.5 วินาทีแล้วลุยใหม่
+                return callAPI(action, data, retries - 1);
+            }
             throw err; 
         }
     }
@@ -574,7 +590,6 @@
             document.getElementById('mobile-menu').classList.toggle('hidden'); 
         },
 
-        // [NEW] ฟังก์ชันแปลง Raw Array กลับเป็น Object ให้หน้าร้านอ่านรู้เรื่อง
         parseRawData: function(rawArray) {
             if(!rawArray) return [];
             return rawArray.map(r => ({
@@ -590,7 +605,6 @@
             }));
         },
         
-        // [UPDATE] โหลดข้อมูลแบบ Raw Data (เร็วปรื๊ด) แล้วแอบโหลด Archive ทีหลัง
         fetchData: function() {
             callAPI('getInitialData').then(res => {
                 this.data = this.parseRawData(res.rawTransactions);
