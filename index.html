@@ -4,14 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Inventory Pro 2025</title>
-    
-    <!-- ====== PWA SETUP ====== -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    
-    <link rel="icon" href="data:image/x-icon;base64,">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -457,26 +449,15 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGOluFtDE2_sQYGeO014IUfogOWv4_Pw5VZVqTGWIYv8eF2EmBbGK5XwiDAZfp2fvoUw/exec'; 
     
-    async function callAPI(action, data = null, retries = 3) {
+    async function callAPI(action, data = null) {
         try {
-            if (!navigator.onLine) {
-                throw new Error("❌ ขาดการเชื่อมต่ออินเทอร์เน็ต! กรุณาเช็คสัญญาณเน็ตก่อนบันทึกข้อมูลครับ");
-            }
-
-            let fetchUrl = `${SCRIPT_URL}?action=${action}`;
-            let options = {};
-
-            if (data !== null) {
-                options = {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: action, data: data }) 
-                };
-            } else {
-                options = { method: 'GET' };
-            }
-            
-            const response = await fetch(fetchUrl, options);
+            const payloadStr = data ? encodeURIComponent(JSON.stringify(data)) : '';
+            const fetchUrl = `${SCRIPT_URL}?action=${action}&payload=${payloadStr}`;
+            const response = await fetch(fetchUrl, {
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: action, data: data }) 
+            });
             
             if (!response.ok) {
                 throw new Error(`การเชื่อมต่อขัดข้อง (HTTP ${response.status})`);
@@ -484,7 +465,7 @@
             
             const textData = await response.text();
             if (textData.trim().startsWith('<')) {
-                throw new Error("ติดหน้าเว็บของ Google! กรุณาเช็คการตั้งค่าสิทธิ์ (Anyone) ในหน้า Deploy ครับ");
+                throw new Error("ติดหน้าเว็บของ Google! กรุณาเปิดหน้าเว็บนี้ใน 'โหมดไม่ระบุตัวตน (Incognito)'");
             }
             
             let result;
@@ -500,11 +481,6 @@
             
             return result;
         } catch (err) { 
-            if (retries > 0) {
-                console.warn(`⚠️ โหลดไม่สำเร็จ กำลังลองใหม่แบบเงียบๆ... (เหลือโอกาสอีก ${retries} ครั้ง)`);
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                return callAPI(action, data, retries - 1);
-            }
             throw err; 
         }
     }
@@ -585,67 +561,36 @@
         toggleMobileMenu: function() { 
             document.getElementById('mobile-menu').classList.toggle('hidden'); 
         },
-
-        parseRawData: function(rawArray) {
-            if(!rawArray) return [];
-            return rawArray.map(r => ({
-                id: r[0], 
-                date: r[1], 
-                category: r[2], 
-                type: r[3], 
-                product: r[4], 
-                price: Number(r[5]), 
-                quantity: Number(r[6]), 
-                unit: r[7], 
-                total: Number(r[8])
-            }));
-        },
         
         fetchData: function() {
             callAPI('getInitialData').then(res => {
-                this.data = this.parseRawData(res.rawTransactions);
-                this.processDataLoaded();
-
-                callAPI('getArchiveData').then(archiveRes => {
-                    if (archiveRes.rawArchive && archiveRes.rawArchive.length > 0) {
-                        const archData = this.parseRawData(archiveRes.rawArchive);
-                        this.data = archData.concat(this.data);
-                        this.processDataLoaded();
-                        console.log("📂 โหลดข้อมูลเก่าจาก Archive สำเร็จ!");
-                    }
-                }).catch(err => {
-                    console.log("Archive load background info:", err);
+                this.data = res.transactions;
+                const pCounts = {}; 
+                const cCounts = {};
+                
+                this.data.forEach(t => { 
+                    if (t.product) pCounts[t.product] = (pCounts[t.product] || 0) + 1; 
+                    if (t.category) cCounts[t.category] = (cCounts[t.category] || 0) + 1; 
                 });
-
+                
+                this.categories = [...new Set(this.data.map(t => t.category))].filter(String).sort((a, b) => cCounts[b] - cCounts[a]);
+                this.products = [...new Set(this.data.map(t => t.product))].filter(String).sort((a, b) => pCounts[b] - pCounts[a]);
+                
+                this.populateYearFilters(); 
+                this.populateDayFilters();
+                
+                const today = new Date(); 
+                const yEl = document.getElementById('dash-year'); 
+                const mEl = document.getElementById('dash-month');
+                if(yEl) yEl.value = today.getFullYear(); 
+                if(mEl) mEl.value = today.getMonth();
+                
+                this.renderDashboard(); 
+                this.applyFilters(); 
+                this.renderStock();
             }).catch(e => { 
                 Swal.fire('เกิดข้อผิดพลาดในการโหลดข้อมูล', e.message, 'error'); 
             });
-        },
-
-        processDataLoaded: function() {
-            const pCounts = {}; 
-            const cCounts = {};
-            
-            this.data.forEach(t => { 
-                if (t.product) pCounts[t.product] = (pCounts[t.product] || 0) + 1; 
-                if (t.category) cCounts[t.category] = (cCounts[t.category] || 0) + 1; 
-            });
-            
-            this.categories = [...new Set(this.data.map(t => t.category))].filter(String).sort((a, b) => cCounts[b] - cCounts[a]);
-            this.products = [...new Set(this.data.map(t => t.product))].filter(String).sort((a, b) => pCounts[b] - pCounts[a]);
-            
-            this.populateYearFilters(); 
-            this.populateDayFilters();
-            
-            const today = new Date(); 
-            const yEl = document.getElementById('dash-year'); 
-            const mEl = document.getElementById('dash-month');
-            if(yEl && yEl.value === '') yEl.value = today.getFullYear(); 
-            if(mEl && mEl.value === 'all') mEl.value = today.getMonth();
-            
-            this.renderDashboard(); 
-            this.applyFilters(); 
-            this.renderStock();
         },
         
         populateYearFilters: function() {
@@ -1251,6 +1196,7 @@
             let loadingText = printRequested ? 'กำลังบันทึกและส่งเข้าคิวพริ้นต์...' : 'กำลังบันทึกข้อมูล...';
             Swal.fire({ title: loadingText, allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             
+            // [UPDATE] ตอนนี้เรียกใช้คำสั่งนี้มันจะทำงานไวมาก เพราะ Google ไม่ต้องรอสร้าง PDF 
             callAPI('saveTransactionBatch', { date, type, items, printRequested }).then(res => {
                 Swal.close(); 
                 if(res.success) { 
@@ -1258,6 +1204,8 @@
                     this.closeMultiModal(); 
                     this.fetchData(); 
 
+                    // [NEW] แอบยิงคำสั่งไปให้ Google สร้าง PDF เก็บไว้ใน Drive ทำงานแบบเบื้องหลัง (Background Task)
+                    // หน้าจอหน้าร้านไม่ต้องหมุนติ้วรอ พนักงานกดรับคิวลูกค้าคนต่อไปได้เลย
                     if (res.receiptData) {
                         callAPI('generateBackgroundPDF', res.receiptData).then(pdfRes => {
                             console.log("Background PDF created and saved to drive!");
@@ -1512,6 +1460,7 @@
             
             this.lastReceiptData = { date: timestamp, type: type, items: formattedItems, total: grandTotal, receiptNumber: receiptNum };
             
+            // [UPDATE] เด้งหน้าต่างพิมพ์ขึ้นมาทันที ไม่ต้องรอให้ Google ปั้น PDF ย้อนหลังอีกต่อไป! 🚀
             app.showPrintModal(app.lastReceiptData, null); 
         },
         
@@ -1656,21 +1605,7 @@
         }
     };
     
-    document.addEventListener('DOMContentLoaded', () => {
-        app.init();
-        
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                .then(reg => {
-                    console.log('✅ ServiceWorker ลงทะเบียนสำเร็จ! (Scope:', reg.scope, ')');
-                })
-                .catch(err => {
-                    console.error('❌ ServiceWorker ลงทะเบียนไม่สำเร็จ:', err);
-                });
-            });
-        }
-    });
+    document.addEventListener('DOMContentLoaded', () => app.init());
 </script>
 </body>
 </html>
