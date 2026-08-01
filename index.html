@@ -10,7 +10,6 @@
     <meta name="theme-color" content="#0f172a">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <!-- ====== แก้ Error favicon.ico ====== -->
     <link rel="icon" href="data:image/x-icon;base64,">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -176,7 +175,7 @@
                         </div>
                         <div class="bg-rose-500 p-5 rounded-2xl shadow-lg hover-card text-white relative overflow-hidden">
                             <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2">
-                                <i class="fa-solid fa-cart-shopping text-9xl"></i>
+                                <i class="fa-solid fa-chart-shopping text-9xl"></i>
                             </div>
                             <p class="text-rose-100 text-xs font-medium mb-1">ต้นทุนรวม</p>
                             <h3 class="text-2xl md:text-3xl font-bold" id="kpi-cost">0 ฿</h3>
@@ -230,101 +229,6 @@
                                 <tbody id="dashboard-recent-table" class="divide-y divide-slate-100 text-slate-600"></tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-                <div id="view-transactions" class="view-section hidden space-y-4 md:space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
-                        <div>
-                            <h2 class="text-xl md:text-2xl font-bold text-slate-800">รายการซื้อ-ขาย</h2>
-                        </div>
-                        <div class="flex bg-white p-1 rounded-lg md:rounded-xl border border-slate-200 shadow-sm text-xs md:text-sm">
-                            <button onclick="app.filterType('all')" id="tab-all" class="px-3 md:px-5 py-1.5 md:py-2 rounded-md font-medium transition bg-slate-800 text-white shadow">ทั้งหมด</button>
-                            <button onclick="app.filterType('ซื้อ')" id="tab-buy" class="px-3 md:px-5 py-1.5 md:py-2 rounded-md font-medium transition text-slate-500 hover:bg-slate-50">ซื้อ</button>
-                            <button onclick="app.filterType('ขาย')" id="tab-sell" class="px-3 md:px-5 py-1.5 md:py-2 rounded-md font-medium transition text-slate-500 hover:bg-slate-50">ขาย</button>
-                        </div>
-                    </div>
-                    <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-2 md:gap-3 items-end">
-                        <div class="flex flex-col lg:col-span-1">
-                            <label class="text-[9px] md:text-[10px] text-indigo-600 font-bold mb-1">เฉพาะวันเดียว</label>
-                            <input type="date" id="filter-single-date" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-indigo-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
-                        </div>
-                        <div class="flex flex-col lg:col-span-1">
-                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">ตั้งแต่วันที่</label>
-                            <input type="date" id="filter-date-start" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
-                        </div>
-                        <div class="flex flex-col lg:col-span-1">
-                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">ถึงวันที่</label>
-                            <input type="date" id="filter-date-end" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">ปี</label>
-                            <select id="filter-year" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full"></select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">เดือน</label>
-                            <select id="filter-month" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
-                                <option value="all">ทุกเดือน</option>
-                                <option value="0">ม.ค.</option>
-                                <option value="1">ก.พ.</option>
-                                <option value="2">มี.ค.</option>
-                                <option value="3">เม.ย.</option>
-                                <option value="4">พ.ค.</option>
-                                <option value="5">มิ.ย.</option>
-                                <option value="6">ก.ค.</option>
-                                <option value="7">ส.ค.</option>
-                                <option value="8">ก.ย.</option>
-                                <option value="9">ต.ค.</option>
-                                <option value="10">พ.ย.</option>
-                                <option value="11">ธ.ค.</option>
-                            </select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">วันที่</label>
-                            <select id="filter-day" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full"></select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">สัปดาห์</label>
-                            <select id="filter-week" onchange="app.applyFilters()" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
-                                <option value="all">ทุกสัปดาห์</option>
-                                <option value="1">WK 1</option>
-                                <option value="2">WK 2</option>
-                                <option value="3">WK 3</option>
-                                <option value="4">WK 4</option>
-                                <option value="5">WK 5</option>
-                            </select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="text-[9px] md:text-[10px] text-slate-500 font-bold mb-1">แสดงผล</label>
-                            <select id="rows-per-page" class="p-1.5 md:p-2 border border-slate-200 rounded-md text-xs md:text-sm bg-slate-50 outline-none w-full">
-                                <option value="15">15 แถว</option>
-                                <option value="30">30 แถว</option>
-                                <option value="50">50 แถว</option>
-                                <option value="100">100 แถว</option>
-                            </select>
-                        </div>
-                        <div class="col-span-2 lg:col-span-3 relative">
-                            <input type="text" id="search-input" placeholder="ค้นหาชื่อ, หมวดหมู่..." class="w-full pl-9 pr-3 py-1.5 md:pl-10 md:pr-4 md:py-2 rounded-md border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs md:text-sm">
-                            <i class="fa-solid fa-search absolute left-3 top-2.5 md:top-3 text-slate-400 text-xs md:text-sm"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="overflow-x-auto mobile-scroll-hint">
-                            <table class="w-full text-left border-collapse min-w-[700px]">
-                                <thead class="bg-slate-50 text-slate-600 uppercase text-[10px] md:text-xs tracking-wider">
-                                    <tr>
-                                        <th class="p-3 md:p-4 font-bold cursor-pointer hover:text-indigo-600" onclick="app.sortData('date')">วันที่ <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="p-3 md:p-4 font-bold cursor-pointer hover:text-indigo-600" onclick="app.sortData('type')">ประเภท <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="p-3 md:p-4 font-bold cursor-pointer hover:text-indigo-600" onclick="app.sortData('product')">สินค้า <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="p-3 md:p-4 font-bold text-right cursor-pointer hover:text-indigo-600" onclick="app.sortData('price')">ราคา <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="p-3 md:p-4 font-bold text-right cursor-pointer hover:text-indigo-600" onclick="app.sortData('quantity')">จำนวน <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="p-3 md:p-4 font-bold text-right cursor-pointer hover:text-indigo-600" onclick="app.sortData('total')">รวม <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="p-3 md:p-4 font-bold text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="table-transactions" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                        <div id="pagination" class="p-3 md:p-4 flex justify-between items-center bg-slate-50 border-t border-slate-200 text-[10px] md:text-sm text-slate-500"></div>
                     </div>
                 </div>
                 <div id="view-transactions" class="view-section hidden space-y-4 md:space-y-6">
@@ -669,17 +573,34 @@
         toggleMobileMenu: function() { 
             document.getElementById('mobile-menu').classList.toggle('hidden'); 
         },
+
+        // [NEW] ฟังก์ชันแปลง Raw Array กลับเป็น Object ให้หน้าร้านอ่านรู้เรื่อง
+        parseRawData: function(rawArray) {
+            if(!rawArray) return [];
+            return rawArray.map(r => ({
+                id: r[0], 
+                date: r[1], 
+                category: r[2], 
+                type: r[3], 
+                product: r[4], 
+                price: Number(r[5]), 
+                quantity: Number(r[6]), 
+                unit: r[7], 
+                total: Number(r[8])
+            }));
+        },
         
-        // [NEW] โหลดข้อมูลปัจจุบันก่อนแบบไวๆ แล้วแอบดึง Archive มาสมทบทีหลังแบบไม่บล็อกหน้าจอ
+        // [UPDATE] โหลดข้อมูลแบบ Raw Data (เร็วปรื๊ด) แล้วแอบโหลด Archive ทีหลัง
         fetchData: function() {
             callAPI('getInitialData').then(res => {
-                this.data = res.transactions;
+                this.data = this.parseRawData(res.rawTransactions);
                 this.processDataLoaded();
 
-                // แอบดึง Archive เบื้องหลังเงียบๆ เพื่อให้ดูประวัติย้อนหลังได้ครบถ้วน
+                // แอบดึง Archive เบื้องหลังเงียบๆ 
                 callAPI('getArchiveData').then(archiveRes => {
-                    if (archiveRes.archiveTransactions && archiveRes.archiveTransactions.length > 0) {
-                        this.data = archiveRes.archiveTransactions.concat(this.data);
+                    if (archiveRes.rawArchive && archiveRes.rawArchive.length > 0) {
+                        const archData = this.parseRawData(archiveRes.rawArchive);
+                        this.data = archData.concat(this.data);
                         this.processDataLoaded();
                         console.log("📂 โหลดข้อมูลเก่าจาก Archive สำเร็จ!");
                     }
@@ -1614,7 +1535,7 @@
                 unit: document.getElementById('edit-unit').value 
             };
             
-            swal.showLoading();
+            Swal.showLoading();
             
             callAPI('updateSingleTransaction', form).then(res => {
                 if(res.success) { 
