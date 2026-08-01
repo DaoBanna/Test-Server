@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Inventory Pro 2025</title>
+    
+    <!-- ====== PWA SETUP ====== -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- ====== แก้ Error favicon.ico ====== -->
+    <link rel="icon" href="data:image/x-icon;base64,">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -451,6 +460,11 @@
     
     async function callAPI(action, data = null) {
         try {
+            // [NEW] ดักจับเน็ตหลุด
+            if (!navigator.onLine) {
+                throw new Error("❌ ขาดการเชื่อมต่ออินเทอร์เน็ต! กรุณาเช็คสัญญาณเน็ตก่อนบันทึกข้อมูลครับ");
+            }
+
             const payloadStr = data ? encodeURIComponent(JSON.stringify(data)) : '';
             const fetchUrl = `${SCRIPT_URL}?action=${action}&payload=${payloadStr}`;
             const response = await fetch(fetchUrl, {
@@ -1196,7 +1210,6 @@
             let loadingText = printRequested ? 'กำลังบันทึกและส่งเข้าคิวพริ้นต์...' : 'กำลังบันทึกข้อมูล...';
             Swal.fire({ title: loadingText, allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             
-            // [UPDATE] ตอนนี้เรียกใช้คำสั่งนี้มันจะทำงานไวมาก เพราะ Google ไม่ต้องรอสร้าง PDF 
             callAPI('saveTransactionBatch', { date, type, items, printRequested }).then(res => {
                 Swal.close(); 
                 if(res.success) { 
@@ -1204,8 +1217,6 @@
                     this.closeMultiModal(); 
                     this.fetchData(); 
 
-                    // [NEW] แอบยิงคำสั่งไปให้ Google สร้าง PDF เก็บไว้ใน Drive ทำงานแบบเบื้องหลัง (Background Task)
-                    // หน้าจอหน้าร้านไม่ต้องหมุนติ้วรอ พนักงานกดรับคิวลูกค้าคนต่อไปได้เลย
                     if (res.receiptData) {
                         callAPI('generateBackgroundPDF', res.receiptData).then(pdfRes => {
                             console.log("Background PDF created and saved to drive!");
@@ -1460,7 +1471,6 @@
             
             this.lastReceiptData = { date: timestamp, type: type, items: formattedItems, total: grandTotal, receiptNumber: receiptNum };
             
-            // [UPDATE] เด้งหน้าต่างพิมพ์ขึ้นมาทันที ไม่ต้องรอให้ Google ปั้น PDF ย้อนหลังอีกต่อไป! 🚀
             app.showPrintModal(app.lastReceiptData, null); 
         },
         
@@ -1605,7 +1615,22 @@
         }
     };
     
-    document.addEventListener('DOMContentLoaded', () => app.init());
+    document.addEventListener('DOMContentLoaded', () => {
+        app.init();
+        
+        // ====== PWA: ติดตั้ง Service Worker ======
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+                    console.log('✅ ServiceWorker ลงทะเบียนสำเร็จ! (Scope:', reg.scope, ')');
+                })
+                .catch(err => {
+                    console.error('❌ ServiceWorker ลงทะเบียนไม่สำเร็จ:', err);
+                });
+            });
+        }
+    });
 </script>
 </body>
 </html>
