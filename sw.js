@@ -1,53 +1,45 @@
-const CACHE_NAME = 'stockpro-v2'; // เปลี่ยนเวอร์ชัน
+const CACHE_NAME = 'stockpro-v3'; // อัปเดตเวอร์ชันเป็น v3 เพื่อบังคับล้างของเก่า
 
-// เซฟเก็บเฉพาะไฟล์หน้าเว็บของเรา ไม่ไปดูด CDN คนอื่นให้ติด Error
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json'
-];
-
+// บังคับให้ติดตั้งและใช้งานตัวใหม่ทันที ไม่ต้องรอ
 self.addEventListener('install', event => {
+  self.skipWaiting(); 
+});
+
+// ไล่ลบ Cache เก่าที่พังๆ ทิ้งให้หมด
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache successfully');
-        return cache.addAll(urlsToCache);
+    caches.keys().then(keys => Promise.all(
+      keys.map(key => {
+        if (key !== CACHE_NAME) {
+          console.log('ล้าง Cache เก่า: ', key);
+          return caches.delete(key);
+        }
       })
+    )).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', event => {
-  // ข้ามการ Cache ถ้าเป็นการดึง API จาก Google หรือดึง CDN อื่นๆ
+  // ข้ามการ Cache ข้อมูล API จาก Google
   if (event.request.url.includes('script.google.com') || 
-      event.request.url.includes('cdn.tailwindcss.com') ||
-      event.request.url.includes('cdnjs.cloudflare.com') ||
-      event.request.url.includes('cdn.jsdelivr.net')) {
+      event.request.url.includes('script.googleusercontent.com')) {
     return;
   }
 
+  // ใช้สูตร Network First: พยายามดึงไฟล์อัปเดตจากเน็ตก่อนเสมอ 
+  // แต่ถ้าเน็ตหลุด ค่อยเอาไฟล์จากในเครื่อง (Cache) มาแสดง
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response; 
+    fetch(event.request).then(response => {
+      // ดึงสำเร็จ -> เอาไปเซฟเก็บไว้เผื่อเน็ตหลุดรอบหน้า
+      return caches.open(CACHE_NAME).then(cache => {
+        if (event.request.method === 'GET' && !event.request.url.includes('cdn')) {
+          cache.put(event.request, response.clone());
         }
-        return fetch(event.request);
-      })
-  );
-});
-
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
+        return response;
+      });
+    }).catch(() => {
+      // ถ้าไม่มีเน็ตจริงๆ ค่อยควักของเก่าในแคชมาโชว์
+      return caches.match(event.request);
     })
   );
 });
